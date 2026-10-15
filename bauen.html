@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Widget-Baukasten — Rebel with Heart</title>
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=fredoka:400,500,600,700|nunito:400,600,700&display=swap">
+<style>
+:root{
+  --bg:#fdf6f8; --surface:#fff; --surface-2:#fbeef3; --line:#f0d7e2;
+  --fg:#3d2b33; --muted:#8a7079; --accent:#e8629a; --accent-soft:#fce3ee; --sun:#f6c453;
+  --f-d:'Fredoka','Trebuchet MS',sans-serif; --f-b:'Nunito',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#231a1f; --surface:#2e222a; --surface-2:#382932; --line:#4a3540;
+  --fg:#f6e9ef; --muted:#b79aa6; --accent:#ff86b8; --accent-soft:#452936; color-scheme:dark;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-b)}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 20px 60px}
+header{margin-bottom:22px}
+.brand{color:var(--accent);font-family:var(--f-d);font-weight:700;letter-spacing:.09em;text-transform:uppercase;font-size:11.5px;margin:0 0 6px}
+h1{font-family:var(--f-d);font-weight:700;font-size:clamp(25px,5vw,34px);margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0;max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:15px}
+.panel+.panel{margin-top:13px}
+.panel h2{font-family:var(--f-d);font-size:13.5px;font-weight:600;margin:0 0 11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:7px}
+.pick{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 5px;border-radius:11px;border:1.5px solid var(--line);
+ background:var(--surface-2);cursor:pointer;font-family:var(--f-d);font-size:11px;font-weight:600;color:var(--fg);text-align:center;line-height:1.2;min-width:0}
+.pick .e{font-size:19px;line-height:1}
+.pick[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-d);font-weight:600;font-size:12px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);
+ background:var(--surface-2);color:var(--muted);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.hint{font-size:11.5px;color:var(--muted);margin:6px 0 0}
+.field{margin-bottom:11px}.field:last-child{margin-bottom:0}
+label.lb{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=date],input[type=number],select,textarea{width:100%;font:inherit;font-size:13.5px;color:var(--fg);
+ background:var(--surface-2);border:1.5px solid var(--line);border-radius:9px;padding:7px 9px}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.chk{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px}
+.cols{display:flex;gap:9px;flex-wrap:wrap}.col{flex:1 1 80px;min-width:0}
+input[type=color]{width:100%;height:32px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface-2);padding:2px;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.pals{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.pal{width:28px;height:28px;border-radius:7px;border:1.5px solid var(--line);cursor:pointer;padding:0;overflow:hidden;display:flex}
+.pal i{flex:1}
+.bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:11px}
+.sz{font-family:var(--f-d);font-weight:600;font-size:12px;padding:5px 11px;border-radius:999px;border:1.5px solid var(--line);
+ background:var(--surface-2);color:var(--muted);cursor:pointer}
+.sz[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--fg)}
+.canvas{background:
+  linear-gradient(45deg,var(--surface-2) 25%,transparent 25%),linear-gradient(-45deg,var(--surface-2) 25%,transparent 25%),
+  linear-gradient(45deg,transparent 75%,var(--surface-2) 75%),linear-gradient(-45deg,transparent 75%,var(--surface-2) 75%);
+  background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;
+  border:1.5px dashed var(--line);border-radius:12px;padding:13px;display:flex;justify-content:center;overflow-x:auto}
+iframe.pv{border:0;background:transparent;border-radius:8px;max-width:100%;box-shadow:0 2px 14px rgba(0,0,0,.08)}
+.urlrow{margin-top:13px}
+.urlrow input{width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;border-color:var(--accent)}
+.btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.btn{font-family:var(--f-d);font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--accent);
+ background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:13px 0 0;display:grid;gap:9px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start;font-size:13.5px}
+ol.steps li::before{content:counter(s);font-family:var(--f-d);font-weight:700;font-size:12px;width:24px;height:24px;border-radius:50%;
+ background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+code{background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+.note{border-left:3px solid var(--sun);background:var(--surface-2);border-radius:0 9px 9px 0;padding:9px 13px;margin-top:13px;font-size:13px}
+footer{margin-top:36px;padding-top:15px;border-top:1.5px solid var(--line);font-size:13px;color:var(--muted)}
+footer a{color:var(--accent);margin-right:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:var(--fg);color:var(--bg);font-family:var(--f-d);
+ font-weight:600;font-size:13px;padding:8px 17px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="brand">Rebel with Heart</p>
+  <h1>Widget-Baukasten</h1>
+  <p class="sub">Stell dir dein Widget zusammen, kopiere die Adresse und füge sie in deiner Notion-Vorlage ein. Du brauchst dafür kein Konto und musst nichts herunterladen.</p>
+</header>
+
+<div class="grid">
+  <div>
+    <div class="panel"><h2>1. Widget</h2><div class="picker" id="picker"></div><p class="hint" id="wdesc"></p></div>
+    <div class="panel"><h2>2. Stil</h2><div class="chips" id="vars"></div><p class="hint" id="vdesc"></p></div>
+    <div class="panel"><h2>3. Inhalt</h2><div id="fields"></div></div>
+    <div class="panel"><h2>4. Aussehen</h2><div id="style"></div></div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <div class="bar">
+        <button class="sz" data-size="300x230">Klein</button>
+        <button class="sz" data-size="420x300" aria-pressed="true">Mittel</button>
+        <button class="sz" data-size="640x230">Breit</button>
+        <button class="sz" data-size="680x120">Band</button>
+        <button class="sz" data-size="360x480">Hoch</button>
+      </div>
+      <div class="canvas"><iframe class="pv" id="pv" title="Vorschau" width="420" height="300" sandbox="allow-scripts allow-same-origin"></iframe></div>
+      <div class="urlrow">
+        <label class="lb" for="url">Deine Adresse zum Einfügen</label>
+        <input id="url" type="text" readonly spellcheck="false">
+      </div>
+      <div class="btns">
+        <button class="btn" id="copy">Adresse kopieren</button>
+        <button class="btn ghost" id="open">In neuem Tab ansehen</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>So fügst du es in Notion ein</h2>
+      <ol class="steps">
+        <li><div>Adresse oben kopieren.</div></li>
+        <li><div>In Notion in eine leere Zeile <code>/embed</code> tippen und „Embed“ wählen.</div></li>
+        <li><div>Adresse einfügen und auf „Link einbetten“ klicken.</div></li>
+        <li><div>Die Kanten des Kästchens auf die gewünschte Größe ziehen. Der Inhalt passt sich von allein an.</div></li>
+      </ol>
+      <div class="note">Widgets mit Eingabefeldern, etwa Checkliste, Tracker, Stimmung und Notizzettel, speichern deine Eingaben nur im Browser des Geräts, an dem du sie machst. Auf einem anderen Gerät oder nach dem Löschen der Website-Daten fängst du wieder bei null an.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="./impressum.html">Impressum</a><a href="./datenschutz.html">Datenschutzerklärung</a>
+  <p style="margin:11px 0 0">© 2026 Andrea Wotzka, Rebel with Heart. Diese Bausteine und ihre Gestaltung sind urheberrechtlich geschützt. Die Nutzung ist nur innerhalb einer bei Rebel with Heart erworbenen Vorlage gestattet. Vervielfältigung, Bearbeitung, Weitergabe, Veröffentlichung und Weiterverkauf sind nicht erlaubt.</p>
+</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./engine.js"></script>
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const BASIS = new URL('w.html', location.href).href;
+const BGM = ['Farbe','Verlauf','Transparent','Nur Rahmen'];
+const STYLE_FIELDS = [
+  {k:'font',t:'select',label:'Schrift',opts:Object.keys(FONTS),def:'Fredoka'},
+  {k:'bgMode',t:'select',label:'Hintergrund',opts:BGM,def:'Verlauf'},
+  {k:'colors',t:'colors'},
+  {k:'radius',t:'range',label:'Ecken runden',min:0,max:40,def:18,unit:'px'},
+  {k:'pad',t:'range',label:'Innenabstand',min:0,max:40,def:10,unit:'px'},
+  {k:'scale',t:'range',label:'Inhalt größer oder kleiner',min:70,max:150,def:100,unit:'%'},
+  {k:'dash',t:'bool',label:'Gestrichelter Rahmen',def:false},
+  {k:'shadow',t:'bool',label:'Weicher Schatten',def:true}
+];
+const SD = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true};
+let current = 'uhr', cfg = {}, size = [420,300];
+
+function defaults(k){
+  const o = Object.assign({}, SD);
+  WIDGETS[k].fields.forEach(f => o[f.k] = f.def);
+  o.variant = WIDGETS[k].variants[0].k;
+  return o;
+}
+function url(){
+  const q = new URLSearchParams();
+  q.set('w', current);
+  if(cfg.variant !== WIDGETS[current].variants[0].k) q.set('v', cfg.variant);
+  const fi = Object.keys(FONTS).indexOf(cfg.font); if(fi > 0) q.set('f', fi);
+  const bi = BGM.indexOf(cfg.bgMode); if(bi !== 1) q.set('bgm', bi);
+  if(cfg.bg.toLowerCase() !== '#fff0f6') q.set('bg', cfg.bg.replace('#',''));
+  if(cfg.accent.toLowerCase() !== '#e8629a') q.set('ac', cfg.accent.replace('#',''));
+  if(cfg.text.toLowerCase() !== '#4a2b38') q.set('tx', cfg.text.replace('#',''));
+  if(cfg.radius !== 18) q.set('r', cfg.radius);
+  if(cfg.pad !== 10) q.set('p', cfg.pad);
+  if(cfg.scale !== 100) q.set('s', cfg.scale);
+  if(cfg.dash) q.set('d','1');
+  if(!cfg.shadow) q.set('sh','0');
+  WIDGETS[current].fields.forEach(f => {
+    const v = cfg[f.k];
+    if(f.t === 'bool'){ if(!!v !== !!f.def) q.set(f.k, v ? '1' : '0'); }
+    else if(String(v) !== String(f.def)) q.set(f.k, v);
+  });
+  return BASIS + '?' + q.toString();
+}
+function picker(){
+  const p = $('#picker'); p.innerHTML = '';
+  Object.entries(WIDGETS).forEach(([k,w]) => {
+    const b = document.createElement('button');
+    b.className = 'pick'; b.type = 'button';
+    b.setAttribute('aria-pressed', String(k === current));
+    b.innerHTML = '<span class="e"></span><span></span>';
+    b.children[0].textContent = w.icon; b.children[1].textContent = w.name;
+    b.onclick = () => { current = k; cfg = defaults(k); picker(); vars(); fields(); render(); };
+    p.appendChild(b);
+  });
+  $('#wdesc').textContent = WIDGETS[current].desc;
+}
+function vars(){
+  const box = $('#vars'); box.innerHTML = '';
+  WIDGETS[current].variants.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = v.n;
+    b.setAttribute('aria-pressed', String(v.k === cfg.variant));
+    b.onclick = () => { cfg.variant = v.k; vars(); render(); };
+    box.appendChild(b);
+  });
+  const v = WIDGETS[current].variants.find(x => x.k === cfg.variant);
+  $('#vdesc').textContent = v ? v.d : '';
+}
+function fieldEl(f){
+  const d = document.createElement('div'); d.className = 'field';
+  const id = 'f_' + f.k;
+  if(f.t === 'note'){ d.innerHTML = '<p class="hint" style="margin-top:0"></p>'; d.querySelector('p').textContent = f.label; return d; }
+  if(f.t === 'bool'){
+    d.innerHTML = '<label class="chk"><input type="checkbox" id="'+id+'"><span></span></label>';
+    d.querySelector('span').textContent = f.label;
+    const i = d.querySelector('input'); i.checked = !!cfg[f.k];
+    i.oninput = () => { cfg[f.k] = i.checked; render(); };
+    return d;
+  }
+  if(f.t === 'colors'){
+    d.innerHTML = '<label class="lb">Farben</label><div class="cols">'+
+      '<div class="col"><input type="color" id="f_bg" aria-label="Fläche"><div class="hint">Fläche</div></div>'+
+      '<div class="col"><input type="color" id="f_accent" aria-label="Akzent"><div class="hint">Akzent</div></div>'+
+      '<div class="col"><input type="color" id="f_text" aria-label="Schrift"><div class="hint">Schrift</div></div>'+
+      '</div><div class="pals" id="pals"></div>';
+    ['bg','accent','text'].forEach(k => {
+      const i = d.querySelector('#f_' + k); i.value = cfg[k];
+      i.oninput = () => { cfg[k] = i.value; render(); };
+    });
+    const pr = d.querySelector('#pals');
+    PALETTES.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'pal'; b.type = 'button'; b.title = p.n; b.setAttribute('aria-label','Farbkombination ' + p.n);
+      b.innerHTML = '<i style="background:'+p.bg+'"></i><i style="background:'+p.accent+'"></i><i style="background:'+p.text+'"></i>';
+      b.onclick = () => { cfg.bg = p.bg; cfg.accent = p.accent; cfg.text = p.text; fields(); render(); };
+      pr.appendChild(b);
+    });
+    return d;
+  }
+  const lb = document.createElement('label'); lb.className = 'lb'; lb.htmlFor = id; lb.textContent = f.label;
+  d.appendChild(lb);
+  let el;
+  if(f.t === 'textarea'){ el = document.createElement('textarea'); el.value = cfg[f.k] ?? ''; }
+  else if(f.t === 'select'){
+    el = document.createElement('select');
+    f.opts.forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o; el.appendChild(op); });
+    el.value = cfg[f.k];
+  }
+  else if(f.t === 'range'){
+    el = document.createElement('input'); el.type = 'range'; el.min = f.min; el.max = f.max; el.value = cfg[f.k];
+    lb.textContent = f.label + ' (' + cfg[f.k] + (f.unit||'') + ')';
+  }
+  else { el = document.createElement('input'); el.type = f.t === 'number' ? 'number' : f.t;
+    if(f.min != null) el.min = f.min; if(f.max != null) el.max = f.max; el.value = cfg[f.k] ?? ''; }
+  el.id = id;
+  el.oninput = () => {
+    cfg[f.k] = (f.t === 'number' || f.t === 'range') ? Number(el.value) : el.value;
+    if(f.t === 'range') lb.textContent = f.label + ' (' + el.value + (f.unit||'') + ')';
+    render();
+  };
+  d.appendChild(el);
+  return d;
+}
+function fields(){
+  const fw = $('#fields'); fw.innerHTML = '';
+  WIDGETS[current].fields.forEach(f => fw.appendChild(fieldEl(f)));
+  const sw = $('#style'); sw.innerHTML = '';
+  STYLE_FIELDS.forEach(f => sw.appendChild(fieldEl(f)));
+}
+function render(){
+  const fr = $('#pv');
+  fr.width = size[0]; fr.height = size[1];
+  fr.srcdoc = WIDGETS[current].build(cfg);
+  $('#url').value = url();
+}
+document.querySelectorAll('.sz').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.sz').forEach(x => x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  size = b.dataset.size.split('x').map(Number);
+  render();
+});
+function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1900); }
+$('#copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#url').value); toast('Adresse kopiert'); }
+  catch(e){ $('#url').select(); toast('Markiert, jetzt Strg + C'); }
+};
+$('#open').onclick = () => window.open($('#url').value, '_blank', 'noopener');
+
+cfg = defaults(current);
+picker(); vars(); fields(); render();
+})();
+</script>
+</body>
+</html>
