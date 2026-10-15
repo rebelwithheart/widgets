@@ -31,6 +31,7 @@
 <body>
 <script src="./engine.js"></script>
 <script>
+
 /* ---------- Loader: baut das Widget aus den Parametern der Adresse ---------- */
 (function(){
   var q = new URLSearchParams(location.search);
@@ -48,7 +49,8 @@
     pad:    q.has('p') ? +q.get('p') : 10,
     scale:  q.has('s') ? +q.get('s') : 100,
     dash:   q.get('d') === '1',
-    shadow: q.get('sh') !== '0'
+    shadow: q.get('sh') !== '0',
+    cs:     CSMODES[parseInt(q.get('cs'),10)] || 'Hell'
   };
   cfg.variant = q.get('v') || W.variants[0].k;
   W.fields.forEach(function(fl){
@@ -62,11 +64,10 @@
   try { html = W.build(cfg); }
   catch (e) {
     html = '<!doctype html><meta charset="utf-8"><body style="font:15px system-ui;padding:16px;color:#4a2b38">'
-         + 'Dieses Widget konnte nicht aufgebaut werden. Bitte die Adresse in der Widget Werkstatt neu erzeugen.</body>';
+         + 'Dieses Widget konnte nicht aufgebaut werden. Bitte die Adresse im Widget-Baukasten neu erzeugen.</body>';
   }
   document.open(); document.write(html); document.close();
 })();
-
 
 </script>
 </body>

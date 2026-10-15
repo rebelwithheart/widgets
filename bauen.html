@@ -65,11 +65,13 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .sz{font-family:var(--f-d);font-weight:600;font-size:12px;padding:5px 11px;border-radius:999px;border:1.5px solid var(--line);
  background:var(--surface-2);color:var(--muted);cursor:pointer}
 .sz[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--fg)}
-.canvas{background:
-  linear-gradient(45deg,var(--surface-2) 25%,transparent 25%),linear-gradient(-45deg,var(--surface-2) 25%,transparent 25%),
-  linear-gradient(45deg,transparent 75%,var(--surface-2) 75%),linear-gradient(-45deg,transparent 75%,var(--surface-2) 75%);
+.canvas{--k1:var(--surface-2);--k2:transparent;background:
+  linear-gradient(45deg,var(--k1) 25%,var(--k2) 25%),linear-gradient(-45deg,var(--k1) 25%,var(--k2) 25%),
+  linear-gradient(45deg,var(--k2) 75%,var(--k1) 75%),linear-gradient(-45deg,var(--k2) 75%,var(--k1) 75%);
   background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;
   border:1.5px dashed var(--line);border-radius:12px;padding:13px;display:flex;justify-content:center;overflow-x:auto}
+.canvas.hell{--k1:#ebebeb;--k2:#ffffff}
+.canvas.dunkel{--k1:#242424;--k2:#191919}
 iframe.pv{border:0;background:transparent;border-radius:8px;max-width:100%;box-shadow:0 2px 14px rgba(0,0,0,.08)}
 .anleitung{grid-column:1/-1;margin-top:18px;max-width:78ch}
 .urlrow{margin-top:13px}
@@ -155,6 +157,7 @@ footer a{color:var(--accent);margin-right:14px}
 const $ = s => document.querySelector(s);
 const BASIS = new URL('w.html', location.href).href;
 const BGM = ['Farbe','Verlauf','Transparent','Nur Rahmen'];
+const CSM = ['Hell','Dunkel','Automatisch'];
 const STYLE_FIELDS = [
   {k:'font',t:'select',label:'Schrift',opts:Object.keys(FONTS),def:'Fredoka'},
   {k:'bgMode',t:'select',label:'Hintergrund',opts:BGM,def:'Verlauf'},
@@ -163,9 +166,11 @@ const STYLE_FIELDS = [
   {k:'pad',t:'range',label:'Innenabstand',min:0,max:40,def:10,unit:'px'},
   {k:'scale',t:'range',label:'Inhalt größer oder kleiner',min:70,max:150,def:100,unit:'%'},
   {k:'dash',t:'bool',label:'Gestrichelter Rahmen',def:false},
-  {k:'shadow',t:'bool',label:'Weicher Schatten',def:true}
+  {k:'shadow',t:'bool',label:'Weicher Schatten',def:true},
+  {k:'cs',t:'select',label:'Deine Notion-Seite ist',opts:CSM,def:'Hell'},
+  {k:'csnote',t:'note',label:'Stell das so ein, wie deine Notion-Seite wirklich aussieht. Davon hängt ab, ob die abgerundeten Ecken sauber durchsichtig bleiben. Automatisch richtet sich nach der Einstellung deines Geräts.'}
 ];
-const SD = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true};
+const SD = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true,cs:'Hell'};
 let current = 'uhr', cfg = {}, size = [420,300];
 
 function defaults(k){
@@ -188,6 +193,7 @@ function url(){
   if(cfg.scale !== 100) q.set('s', cfg.scale);
   if(cfg.dash) q.set('d','1');
   if(!cfg.shadow) q.set('sh','0');
+  const ci = CSM.indexOf(cfg.cs); if(ci > 0) q.set('cs', ci);
   WIDGETS[current].fields.forEach(f => {
     const v = cfg[f.k];
     if(f.t === 'bool'){ if(!!v !== !!f.def) q.set(f.k, v ? '1' : '0'); }
@@ -285,6 +291,8 @@ function render(){
   const fr = $('#pv');
   fr.width = size[0]; fr.height = size[1];
   fr.srcdoc = WIDGETS[current].build(cfg);
+  const cv = fr.parentElement;
+  if(cv) cv.className = 'canvas' + (cfg.cs === 'Hell' ? ' hell' : cfg.cs === 'Dunkel' ? ' dunkel' : '');
   $('#url').value = url();
 }
 document.querySelectorAll('.sz').forEach(b => b.onclick = () => {

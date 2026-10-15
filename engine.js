@@ -49,6 +49,9 @@ const PALETTES = [
   {n:'Creme',     bg:'#faf6f0', accent:'#b58a6a', text:'#4a3b2f'}
 ];
 
+const CSMODES = ['Hell','Dunkel','Automatisch'];
+const CSMODE = {Hell:'light', Dunkel:'dark', Automatisch:'light dark'};
+
 const STYLE_FIELDS = [
   {k:'font',t:'select',label:'Schrift',opts:Object.keys(FONTS),def:'Fredoka'},
   {k:'fontnote',t:'note',label:'Die ersten sieben Schriften kommen vom EU-Dienst Bunny Fonts. Die drei Systemschriften senden gar keine Anfrage nach außen.'},
@@ -58,9 +61,11 @@ const STYLE_FIELDS = [
   {k:'pad',t:'range',label:'Innenabstand',min:0,max:40,def:10,unit:'px'},
   {k:'scale',t:'range',label:'Inhalt größer oder kleiner',min:70,max:150,def:100,unit:'%'},
   {k:'dash',t:'bool',label:'Gestrichelter Rahmen',def:false},
-  {k:'shadow',t:'bool',label:'Weicher Schatten',def:true}
+  {k:'shadow',t:'bool',label:'Weicher Schatten',def:true},
+  {k:'cs',t:'select',label:'Deine Notion-Seite ist',opts:CSMODES,def:'Hell'},
+  {k:'csnote',t:'note',label:'Stell das so ein, wie deine Notion-Seite wirklich aussieht. Davon hängt ab, ob die abgerundeten Ecken sauber durchsichtig bleiben. Automatisch richtet sich nach der Einstellung deines Geräts.'}
 ];
-const STYLE_DEF = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true};
+const STYLE_DEF = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true,cs:'Hell'};
 
 /* ---------- Hilfen ---------- */
 function hexa(hex,a){const h=hex.replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);
@@ -95,7 +100,7 @@ if(window.ResizeObserver){try{new ResizeObserver(fit).observe(document.body)}cat
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="${CSMODE[cfg.cs] || 'light'}">
 <title>${esc(title)}</title>
 ${f.url ? `<link rel="preconnect" href="https://fonts.bunny.net">
 <link rel="stylesheet" href="https://fonts.bunny.net/css?family=${f.url}&display=swap">` : '<!-- Systemschrift, keine externen Dateien -->'}
