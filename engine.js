@@ -1193,7 +1193,7 @@ rechne();`;
 .zeile input{width:4.6em;flex:0 0 auto;text-align:right;font-weight:700;font-size:1.05em;
  background:${hexa(c.accent,.12)};border:.1em solid ${hexa(c.accent,.32)};border-radius:.4em;padding:.25em .45em;outline:none}
 .gross{font-size:2.6em;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.unter{font-size:.78em;opacity:.7}`;
+.unter{font-size:.78em;opacity:.7;line-height:1.25;text-wrap:balance}`;
       const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
 <div class="zeile"><label for="s">Betrag</label><input id="s" type="number" min="0" step="0.5" inputmode="decimal"></div>
 <div class="zeile"><label for="n">Geteilt durch</label><input id="n" type="number" min="2" step="1" inputmode="numeric"></div>
@@ -1211,7 +1211,7 @@ function rechne(){
   var je=Math.floor(S/N), rest=S-je*N;
   document.getElementById('je').textContent=eur(je/100);
   document.getElementById('rest').textContent = rest>0
-    ? ('jede und jeder bekommt das, ' + rest + ' Cent bleiben übrig')
+    ? (rest===1 ? '1 Cent bleibt übrig' : rest + ' Cent bleiben übrig')
     : 'geht genau auf';
 }
 [s,n].forEach(function(el){el.addEventListener('input',rechne)});
@@ -1223,25 +1223,28 @@ rechne();`;
     const klein = v === 'gross';
     const tasten = klein
       ? [['C','f'],['⌫','f'],['−','o'],['7','n'],['8','n'],['9','n'],['4','n'],['5','n'],['6','n'],
-         ['1','n'],['2','n'],['3','n'],['0','n'],[',','n'],['+','o'],['=','g']]
+         ['1','n'],['2','n'],['3','n'],['0','n'],[',','n'],['+','o'],['=','g w3']]
       : [['C','f'],['⌫','f'],['%','f'],['÷','o'],
          ['7','n'],['8','n'],['9','n'],['×','o'],
          ['4','n'],['5','n'],['6','n'],['−','o'],
          ['1','n'],['2','n'],['3','n'],['+','o'],
          ['0','n w2'],[',','n'],['=','g']];
     const spalten = klein ? 3 : 4;
-    const css = `.card{justify-content:stretch;gap:.3em}
-.disp{flex:0 0 auto;text-align:right;font-size:2.1em;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;
- padding:0 .12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.merk{flex:0 0 auto;text-align:right;font-size:.62em;opacity:.5;min-height:1em;font-variant-numeric:tabular-nums;padding:0 .2em}
-.pad{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(${spalten},1fr);grid-auto-rows:1fr;gap:.22em}
+    const breit = klein ? '15em' : '19em';
+    const css = `.card{justify-content:stretch;gap:.25em;align-items:center}
+.merk,.disp,.pad{width:100%;max-width:${breit}}
+.disp{flex:0 0 auto;text-align:right;font-size:1.9em;font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums;
+ background:${hexa(c.text,.07)};border-radius:.3em;padding:.08em .3em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.merk{flex:0 0 auto;text-align:right;font-size:.6em;opacity:.5;min-height:1em;font-variant-numeric:tabular-nums;padding:0 .5em}
+.pad{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(${spalten},1fr);grid-auto-rows:minmax(0,1fr);gap:.2em}
 .pad button{border:none;border-radius:.42em;font-size:1.15em;font-weight:600;line-height:1;
  background:${hexa(c.accent,.12)};display:grid;place-items:center;transition:background .1s}
 .pad button:active{background:${hexa(c.accent,.3)}}
 .pad button.o{background:${hexa(c.accent,.26)};font-weight:700}
 .pad button.f{background:${hexa(c.text,.12)};font-size:1em}
 .pad button.g{background:${c.accent};color:${oa};font-weight:700}
-.pad button.w2{grid-column:span 2}`;
+.pad button.w2{grid-column:span 2}
+.pad button.w3{grid-column:span 3}`;
     const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
 <div class="merk" id="merk"></div>
 <div class="disp" id="disp">0</div>

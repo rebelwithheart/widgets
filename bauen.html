@@ -24,7 +24,16 @@ header{margin-bottom:22px}
 h1{font-family:var(--f-d);font-weight:700;font-size:clamp(25px,5vw,34px);margin:0 0 6px;letter-spacing:-.01em}
 .sub{color:var(--muted);margin:0;max-width:62ch}
 .grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+/* Vorschau laeuft beim Scrollen mit, damit Aenderungen sofort sichtbar sind */
+@media (min-width:901px){
+  .grid>div:last-child{align-self:stretch}
+  .grid>div:last-child>.panel:first-child{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;
+    scrollbar-width:thin;overscroll-behavior:contain}
+}
+@media (max-width:900px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid>div:last-child{order:-1}
+}
 .panel{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:15px}
 .panel+.panel{margin-top:13px}
 .panel h2{font-family:var(--f-d);font-size:13.5px;font-weight:600;margin:0 0 11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
