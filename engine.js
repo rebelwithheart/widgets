@@ -20,7 +20,6 @@
   ============================================================
 */
 
-
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const jstr = s => JSON.stringify(String(s));
 
@@ -184,8 +183,8 @@ uhr:{
   build(c){
     const oa = onAccent(c), v = c.variant;
     const base = `.em{font-size:1.3em;line-height:1;flex:0 0 auto}
-.an{flex:1 1 auto;min-height:0;width:100%;display:block}
-.an svg{width:100%;height:100%;display:block}
+.an{position:relative;flex:1 1 auto;min-height:0;width:100%;display:block}
+.an svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .clock{font-size:3.2em;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .dt{font-size:.95em;font-weight:500;opacity:.75;line-height:1.2}`;
 
@@ -350,14 +349,14 @@ run();setInterval(run,20000);`;
     if(v==='ring'){
       const css = base + `
 .rg{position:relative;flex:1 1 auto;min-height:0;width:100%}
-.rg svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.rg svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .rg .t{fill:none;stroke:${hexa(c.accent,.18)};stroke-width:8}
 .rg .p{fill:none;stroke:${c.accent};stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .6s}
 .rg .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.02em}`;
       const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
 <div class="rg"><svg viewBox="0 0 100 100" aria-hidden="true">
  <circle class="t" cx="50" cy="50" r="44"></circle>
- <circle class="p" id="pr" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5"></circle></svg>
+ <circle class="p" id="pr" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5" transform="rotate(-90 50 50)"></circle></svg>
  <div class="c"><div class="num" id="n" style="font-size:2.3em">–</div><div class="unit" id="u">Tage</div></div></div>`;
       const js = `var A=new Date(${jstr(c.start)}+'T00:00:00'),B=new Date(${jstr(c.target)}+'T00:00:00');
 function run(){var n=new Date(),ms=B-n;
@@ -432,7 +431,7 @@ run();setInterval(run,60000);`;
 
 pomodoro:{
   name:'Pomodoro', icon:'🍅', folder:'pomodoro',
-  desc:'Lerntimer mit Lernzeit, kurzer und langer Pause.',
+  desc:'Lerntimer mit Lernzeit, kurzer und langer Pause. Am Widget umschaltbar und einstellbar.',
   variants:[
     {k:'ring', n:'Ring', d:'Kreis läuft leer, Zeit in der Mitte.'},
     {k:'balken', n:'Balken', d:'Waagerechter Balken, Zeit darüber.'},
@@ -446,37 +445,98 @@ pomodoro:{
     {k:'short',t:'number',label:'Kurze Pause (Minuten)',def:5,min:1,max:30},
     {k:'long',t:'number',label:'Lange Pause (Minuten)',def:15,min:1,max:60},
     {k:'rounds',t:'number',label:'Runden bis zur langen Pause',def:4,min:2,max:8},
-    {k:'sound',t:'bool',label:'Signalton am Ende',def:true}
+    {k:'sound',t:'bool',label:'Signalton am Ende',def:true},
+    {k:'phasen',t:'bool',label:'Umschalter Lernen und Pause zeigen',def:true},
+    {k:'stell',t:'bool',label:'Zeiten am Widget änderbar',def:true}
   ],
   build(c){
     const oa = onAccent(c), v = c.variant;
+    const chips = c.phasen, stell = c.stell;
+
     const common = `
 .tm{font-size:2em;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
 .ph{font-size:.72em;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.6;line-height:1.2}
+.chips{display:flex;gap:.22em;justify-content:center;flex:0 0 auto;width:100%}
+.chips button{flex:1;min-width:0;border:none;border-radius:.7em;background:${hexa(c.accent,.14)};
+ font-size:.58em;font-weight:700;padding:.4em .25em;line-height:1.1;letter-spacing:.01em;
+ white-space:normal;transition:background .12s}
+.chips button.an{background:${c.accent};color:${oa}}
 .ctr{display:flex;gap:.4em;justify-content:center;flex:0 0 auto}
 .ctr button{border:none;background:${c.accent};color:${oa};font-weight:600;font-size:.92em;padding:.45em 1.2em;border-radius:999px;line-height:1.2}
 .ctr button.sec{background:${hexa(c.accent,.16)};color:${c.text}}
-.cnt{font-size:.74em;opacity:.55;line-height:1.2}`;
-    const logic = `${c.sound?beep:'function beep(){}'}
-var W=${c.work}*60,S=${c.short}*60,L=${c.long}*60,R=${c.rounds};
-var phase='work',left=W,running=false,done=0,iv=null;
-var tm=document.getElementById('tm'),ph=document.getElementById('ph'),go=document.getElementById('go'),cnt=document.getElementById('cnt');
-function total(){return phase==='work'?W:phase==='short'?S:L}
-function paint(){var m=Math.floor(left/60),s=left%60;
+.stell{display:flex;gap:.35em;align-items:center;justify-content:center;flex:0 0 auto;font-size:.72em;font-weight:600}
+.stell button{border:none;background:${hexa(c.accent,.18)};color:${c.text};font-weight:700;font-size:1.1em;line-height:1;
+ width:1.7em;height:1.7em;border-radius:50%;display:grid;place-items:center}
+.stell span{min-width:4.2em;text-align:center;font-variant-numeric:tabular-nums;opacity:.8}
+.cnt{font-size:.74em;opacity:.55;line-height:1.2;flex:0 0 auto}`;
+
+    const chipHtml = chips
+      ? `<div class="chips" id="chips">
+<button type="button" data-p="work">Lernen</button>
+<button type="button" data-p="short">Kurze Pause</button>
+<button type="button" data-p="long">Lange Pause</button>
+</div>` : '';
+    const stellHtml = stell
+      ? `<div class="stell" id="stell">
+<button type="button" id="minus" aria-label="weniger Minuten">−</button>
+<span id="mins">– min</span>
+<button type="button" id="plus" aria-label="mehr Minuten">+</button>
+</div>` : '';
+
+    const logic = `${store}
+${c.sound ? `function tonGeben(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();
+o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=880;g.gain.setValueAtTime(.001,a.currentTime);
+g.gain.exponentialRampToValueAtTime(.25,a.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.6);
+o.start();o.stop(a.currentTime+.62)}catch(e){}}` : 'function tonGeben(){}'}
+var KEY='pomo_'+${jstr(c.top||'lernzeit')};
+var STD={work:${Number(c.work)||15},short:${Number(c.short)||5},long:${Number(c.long)||15}};
+var MIN=ld(KEY,null); if(!MIN||typeof MIN!=='object') MIN={work:STD.work,short:STD.short,long:STD.long};
+var R=${Number(c.rounds)||4};
+var phase='work', running=false, done=0, iv=null;
+var left=MIN.work*60;
+var tm=document.getElementById('tm'), ph=document.getElementById('ph');
+var go=document.getElementById('go'), cnt=document.getElementById('cnt');
+var mins=document.getElementById('mins'), chipBox=document.getElementById('chips');
+var NAMEN={work:'Lernen',short:'Kurze Pause',long:'Lange Pause'};
+function total(){return MIN[phase]*60}
+function paint(){
+ var m=Math.floor(left/60), s=left%60;
  tm.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
- if(ph)ph.textContent=phase==='work'?'Lernen':phase==='short'?'Kurze Pause':'Lange Pause';
+ if(ph)ph.textContent=NAMEN[phase];
  if(cnt)cnt.textContent='Runde '+(done%R+1)+' von '+R;
  if(go)go.textContent=running?'Pause':'Start';
+ if(mins)mins.textContent=MIN[phase]+' min';
+ if(chipBox)[].forEach.call(chipBox.children,function(b){
+   b.className = b.getAttribute('data-p')===phase ? 'an' : '';
+ });
  var frac=1-left/total();
- var pr=document.getElementById('pr');if(pr)pr.setAttribute('stroke-dashoffset',String(279.6*frac));
- var bi=document.getElementById('bi');if(bi)bi.style.width=(frac*100)+'%';
+ var pr=document.getElementById('pr'); if(pr)pr.setAttribute('stroke-dashoffset',String(279.6*frac));
+ var bi=document.getElementById('bi'); if(bi)bi.style.width=(frac*100)+'%';
  var tt=document.getElementById('tt');
- if(tt){var h='';for(var i=0;i<R;i++)h+=(i<done%R||(done>0&&done%R===0)?'🍅':'🤍');tt.textContent=h}}
-function next(){beep();if(phase==='work'){done++;phase=(done%R===0)?'long':'short'}else{phase='work'}left=total();paint()}
-function tick(){if(left>0){left--;paint()}else{next()}}
-if(go)go.onclick=function(){running=!running;if(running){iv=setInterval(tick,1000)}else{clearInterval(iv)}paint()};
+ if(tt){var h='';for(var i=0;i<R;i++)h+=(i<done%R||(done>0&&done%R===0)?'🍅':'🤍');tt.textContent=h}
+}
+function stop(){running=false;clearInterval(iv);iv=null}
+function setze(p){stop();phase=p;left=total();paint()}
+function weiter(){tonGeben();
+ if(phase==='work'){done++;phase=(done%R===0)?'long':'short'}else{phase='work'}
+ left=total();paint()}
+function tick(){if(left>0){left--;paint()}else{weiter()}}
+if(go)go.onclick=function(){
+ if(running){stop()}else{running=true;iv=setInterval(tick,1000)}
+ paint()};
 var rs=document.getElementById('rs');
-if(rs)rs.onclick=function(){clearInterval(iv);running=false;phase='work';left=W;done=0;paint()};
+if(rs)rs.onclick=function(){stop();phase='work';done=0;left=total();paint()};
+if(chipBox)[].forEach.call(chipBox.children,function(b){
+ b.onclick=function(){setze(b.getAttribute('data-p'))}});
+var mi=document.getElementById('minus'), pl=document.getElementById('plus');
+function aendern(d){
+ MIN[phase]=Math.max(1,Math.min(90,MIN[phase]+d));
+ sv(KEY,MIN);
+ if(!running) left=total();
+ paint();
+}
+if(mi)mi.onclick=function(){aendern(-1)};
+if(pl)pl.onclick=function(){aendern(1)};
 paint();`;
 
     if(v==='balken' || v==='tomate'){
@@ -486,59 +546,72 @@ paint();`;
 .bar i{display:block;height:100%;width:0;background:${c.accent};border-radius:999px;transition:width .4s linear}
 .tt{font-size:1.5em;letter-spacing:.08em;line-height:1;flex:0 0 auto}`;
       const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+${chipHtml}
 ${v==='tomate'?'<div class="tt" id="tt"></div>':''}
-<div class="tm" id="tm" style="font-size:3.1em">00:00</div>
-<div class="ph" id="ph">Lernen</div>
+<div class="tm" id="tm" style="font-size:2.9em">00:00</div>
+${chips?'':'<div class="ph" id="ph">Lernen</div>'}
 <div class="bar"><i id="bi"></i></div>
 <div class="ctr"><button id="go">Start</button><button class="sec" id="rs">Neu</button></div>
+${stellHtml}
 ${v==='balken'?'<div class="cnt" id="cnt"></div>':''}`;
-      return shell(c, c.top||'Pomodoro', html, css, logic, 9, 10.5);
+      return shell(c, c.top||'Pomodoro', html, css, logic, chips&&stell?11:9.5, 11);
     }
 
     if(v==='zahl'){
-      const css = common + `.card{justify-content:space-evenly}.tm{font-size:4.2em}`;
+      const css = common + `.card{justify-content:space-evenly}.tm{font-size:3.6em}`;
       const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
-<div class="tm" id="tm">00:00</div><div class="ph" id="ph">Lernen</div>
-<div class="ctr"><button id="go">Start</button><button class="sec" id="rs">Neu</button></div>`;
-      return shell(c, c.top||'Pomodoro', html, css, logic, 8, 13);
+${chipHtml}
+<div class="tm" id="tm">00:00</div>
+${chips?'':'<div class="ph" id="ph">Lernen</div>'}
+<div class="ctr"><button id="go">Start</button><button class="sec" id="rs">Neu</button></div>
+${stellHtml}`;
+      return shell(c, c.top||'Pomodoro', html, css, logic, chips&&stell?10:8.5, 12);
     }
 
     if(v==='karte'){
       const css = common + `
-.card{flex-direction:row;gap:1em;text-align:left;align-items:center}
-.lf{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:.1em}
-.lf .tm{font-size:3.2em}
+.card{flex-direction:row;gap:.9em;text-align:left;align-items:center}
+.lf{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:.18em}
+.lf .tm{font-size:2.9em}
+.lf .ttl{text-align:left}
 .rt{flex:0 0 auto;display:flex;flex-direction:column;gap:.35em;align-items:stretch}
 .rt button{border:none;background:${c.accent};color:${oa};font-weight:600;font-size:.92em;padding:.45em 1.1em;border-radius:999px;white-space:nowrap;line-height:1.2}
 .rt button.sec{background:${hexa(c.accent,.16)};color:${c.text}}
-.bar{width:100%;height:.4em;border-radius:999px;background:${hexa(c.text,.14)};overflow:hidden;margin-top:.25em}
-.bar i{display:block;height:100%;width:0;background:${c.accent};transition:width .4s linear}`;
-      const html = `<div class="lf">${c.top?`<p class="ttl" style="text-align:left">${esc(c.top)}</p>`:''}
-<div class="tm" id="tm">00:00</div><div class="ph" id="ph">Lernen</div>
-<div class="bar"><i id="bi"></i></div><div class="cnt" id="cnt"></div></div>
+.bar{width:100%;height:.4em;border-radius:999px;background:${hexa(c.text,.14)};overflow:hidden;margin-top:.2em}
+.bar i{display:block;height:100%;width:0;background:${c.accent};transition:width .4s linear}
+.stell{justify-content:flex-start}`;
+      const html = `<div class="lf">${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+${chipHtml}
+<div class="tm" id="tm">00:00</div>
+${chips?'':'<div class="ph" id="ph">Lernen</div>'}
+<div class="bar"><i id="bi"></i></div>
+${stellHtml}
+<div class="cnt" id="cnt"></div></div>
 <div class="rt"><button id="go">Start</button><button class="sec" id="rs">Neu</button></div>`;
-      return shell(c, c.top||'Pomodoro', html, css, logic, 7.5, 17);
+      return shell(c, c.top||'Pomodoro', html, css, logic, 7.5 + (chips?2.2:0) + (stell?1.8:0), 17);
     }
 
     /* ring */
     const css = common + `
+.card{justify-content:space-evenly}
 .ring{position:relative;flex:1 1 auto;min-height:0;width:100%}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .ring .tr{fill:none;stroke:${hexa(c.accent,.18)};stroke-width:7.5}
 .ring .pr{fill:none;stroke:${c.accent};stroke-width:7.5;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
 .ring .lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.05em}
 .ring .tm{font-size:2.3em}`;
     const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+${chipHtml}
 <div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true">
  <circle class="tr" cx="50" cy="50" r="44.5"></circle>
- <circle class="pr" cx="50" cy="50" r="44.5" id="pr" stroke-dasharray="279.6" stroke-dashoffset="0"></circle></svg>
- <div class="lbl"><div class="tm" id="tm">00:00</div><div class="ph" id="ph">Lernen</div></div></div>
+ <circle class="pr" cx="50" cy="50" r="44.5" id="pr" stroke-dasharray="279.6" stroke-dashoffset="0" transform="rotate(-90 50 50)"></circle></svg>
+ <div class="lbl"><div class="tm" id="tm">00:00</div>${chips?'':'<div class="ph" id="ph">Lernen</div>'}</div></div>
 <div class="ctr"><button id="go">Start</button><button class="sec" id="rs">Neu</button></div>
+${stellHtml}
 <div class="cnt" id="cnt"></div>`;
-    return shell(c, c.top||'Pomodoro', html, css, logic, 11, 11);
+    return shell(c, c.top||'Pomodoro', html, css, logic, chips&&stell?13:11, 11);
   }
 },
-
 spruch:{
   name:'Spruch des Tages', icon:'💬', folder:'spruch',
   desc:'Ein Spruch aus deiner eigenen Liste, wechselt von allein.',
@@ -749,7 +822,7 @@ fortschritt:{
 .bar i{display:block;height:100%;width:0;background:${c.accent};border-radius:999px;transition:width .5s}
 .sm{font-size:.82em;opacity:.68;font-variant-numeric:tabular-nums;flex:0 0 auto;line-height:1.2}
 .rg{position:relative;flex:1 1 auto;min-height:0;width:100%}
-.rg svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.rg svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .rg .t{fill:none;stroke:${hexa(c.accent,.18)};stroke-width:8}
 .rg .p{fill:none;stroke:${c.accent};stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .6s}
 .rg .c{position:absolute;inset:0;display:grid;place-items:center}
@@ -759,7 +832,7 @@ fortschritt:{
 .blk i.f{background:${c.accent}}
 .pl{font-size:3em;line-height:1;flex:0 0 auto}`;
     let body;
-    if(v==='ring') body = `<div class="rg"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="44"></circle><circle class="p" id="pr" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5"></circle></svg><div class="c"><div class="pcn" id="pc" style="font-size:1.8em">0 %</div></div></div>`;
+    if(v==='ring') body = `<div class="rg"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="t" cx="50" cy="50" r="44"></circle><circle class="p" id="pr" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5" transform="rotate(-90 50 50)"></circle></svg><div class="c"><div class="pcn" id="pc" style="font-size:1.8em">0 %</div></div></div>`;
     else if(v==='herzen') body = `<div class="hrt" id="hr">🤍🤍🤍🤍🤍🤍🤍🤍🤍🤍</div><div class="pcn" id="pc" style="font-size:2em">0 %</div>`;
     else if(v==='bloecke') body = `<div class="pcn" id="pc" style="font-size:2.4em">0 %</div><div class="blk" id="bk"></div>`;
     else if(v==='pflanze') body = `<div class="pl" id="pl">🌱</div><div class="pcn" id="pc" style="font-size:2em">0 %</div><div class="bar"><i id="bi"></i></div>`;
@@ -1336,8 +1409,8 @@ uhrzeit:{
       return `<text x="${x.toFixed(1)}" y="${(y+3.4).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="${hexa(c.text,.55)}">${n}</text>`;
     }).join('');
     const css = `.card{justify-content:space-evenly}
-.an{flex:1 1 auto;min-height:0;width:100%}
-.an svg{width:100%;height:100%;display:block}
+.an{position:relative;flex:1 1 auto;min-height:0;width:100%}
+.an svg{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .ant{display:grid;grid-template-columns:1fr 1fr;gap:.3em;width:100%;flex:0 0 auto}
 .ant button{border:none;border-radius:.5em;background:${hexa(c.accent,.15)};font-size:.98em;font-weight:700;
  padding:.3em .2em;font-variant-numeric:tabular-nums;transition:background .12s}
@@ -1573,5 +1646,4 @@ gz.addEventListener('input',function(){sv(K,{d:today(),v:gz.value})});`;
   }
 }
 };
-
 
