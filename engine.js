@@ -1336,12 +1336,12 @@ uhrzeit:{
 .an{flex:1 1 auto;min-height:0;width:100%}
 .an svg{width:100%;height:100%;display:block}
 .ant{display:grid;grid-template-columns:1fr 1fr;gap:.3em;width:100%;flex:0 0 auto}
-.ant button{border:none;border-radius:.5em;background:${hexa(c.accent,.15)};font-size:1.15em;font-weight:700;
- padding:.4em .2em;font-variant-numeric:tabular-nums;transition:background .12s}
+.ant button{border:none;border-radius:.5em;background:${hexa(c.accent,.15)};font-size:.98em;font-weight:700;
+ padding:.3em .2em;font-variant-numeric:tabular-nums;transition:background .12s}
 .ant button.ja{background:${c.accent};color:${oa}}
 .ant button.nein{background:${hexa(c.text,.16)};opacity:.55}
-.rueck{flex:0 0 auto;font-size:.8em;font-weight:600;min-height:1.3em;color:${c.accent}}
-.pkt{flex:0 0 auto;font-size:.66em;opacity:.55;font-variant-numeric:tabular-nums}`;
+.rueck{flex:0 0 auto;font-size:.74em;font-weight:600;min-height:1.1em;line-height:1.1;color:${c.accent}}
+.pkt{flex:0 0 auto;font-size:.62em;opacity:.55;line-height:1.1;font-variant-numeric:tabular-nums}`;
     const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
 <div class="an"><svg viewBox="0 0 100 100" aria-hidden="true">
 <circle cx="50" cy="50" r="46" fill="${hexa(c.accent,.1)}" stroke="${c.accent}" stroke-width="2.5"/>
