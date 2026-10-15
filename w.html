@@ -50,7 +50,9 @@
     scale:  q.has('s') ? +q.get('s') : 100,
     dash:   q.get('d') === '1',
     shadow: q.get('sh') !== '0',
-    cs:     CSMODES[parseInt(q.get('cs'),10)] || 'Hell'
+    cs:     CSMODES[parseInt(q.get('cs'),10)] || 'Hell',
+    umfT:   q.get('ut') !== '0',
+    umf:    '#' + (q.get('uf') || 'ffffff')
   };
   cfg.variant = q.get('v') || W.variants[0].k;
   W.fields.forEach(function(fl){

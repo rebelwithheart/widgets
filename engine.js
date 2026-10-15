@@ -62,10 +62,13 @@ const STYLE_FIELDS = [
   {k:'scale',t:'range',label:'Inhalt größer oder kleiner',min:70,max:150,def:100,unit:'%'},
   {k:'dash',t:'bool',label:'Gestrichelter Rahmen',def:false},
   {k:'shadow',t:'bool',label:'Weicher Schatten',def:true},
+  {k:'umfT',t:'bool',label:'Hinter den Ecken durchsichtig lassen',def:true},
+  {k:'umf',t:'color',label:'Sonst: Farbe hinter den Ecken',def:'#ffffff'},
+  {k:'umfnote',t:'note',label:'Manche Seiten malen hinter eingebettete Kaestchen eine eigene Flaeche, meistens Weiss. Dann sieht man die abgerundeten Ecken. Nimm den Haken weg und stell genau die Farbe deiner Seite ein, dann ist die Kante weg.'},
   {k:'cs',t:'select',label:'Deine Notion-Seite ist',opts:CSMODES,def:'Hell'},
   {k:'csnote',t:'note',label:'Stell das so ein, wie deine Notion-Seite wirklich aussieht. Davon hängt ab, ob die abgerundeten Ecken sauber durchsichtig bleiben. Automatisch richtet sich nach der Einstellung deines Geräts.'}
 ];
-const STYLE_DEF = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true,cs:'Hell'};
+const STYLE_DEF = {font:'Fredoka',bgMode:'Verlauf',bg:'#fff0f6',accent:'#e8629a',text:'#4a2b38',radius:18,pad:10,scale:100,dash:false,shadow:true,cs:'Hell',umfT:true,umf:'#ffffff'};
 
 /* ---------- Hilfen ---------- */
 function hexa(hex,a){const h=hex.replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);
@@ -95,6 +98,7 @@ if(window.ResizeObserver){try{new ResizeObserver(fit).observe(document.body)}cat
   else bg=cfg.bg;
   const border=(cfg.bgMode==='Nur Rahmen'||cfg.dash)?`${cfg.dash?'2.5px dashed':'2.5px solid'} ${cfg.accent}`:'none';
   const shadow=cfg.shadow&&cfg.bgMode!=='Transparent'?`box-shadow:0 6px 20px ${hexa(cfg.accent,.22)};`:'';
+  const umfeld = cfg.umfT === false ? (cfg.umf || '#ffffff') : 'transparent';
   return `<!doctype html>
 <html lang="de">
 <head>
@@ -109,7 +113,7 @@ ${f.url ? `<link rel="preconnect" href="https://fonts.bunny.net">
 html,body{height:100%;margin:0;overflow:hidden}
 html{font-size:16px}
 body{display:flex;align-items:stretch;padding:0;
-  font-family:${f.css};font-size:1rem;color:${cfg.text};background:transparent}
+  font-family:${f.css};font-size:1rem;color:${cfg.text};background:${umfeld}}
 .card{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:.28em;text-align:center;padding:${pad}px;border-radius:${cfg.radius}px;background:${bg};border:${border};${shadow}
   overflow:hidden}
