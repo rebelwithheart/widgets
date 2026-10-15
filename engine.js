@@ -95,6 +95,7 @@ if(window.ResizeObserver){try{new ResizeObserver(fit).observe(document.body)}cat
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>${esc(title)}</title>
 ${f.url ? `<link rel="preconnect" href="https://fonts.bunny.net">
 <link rel="stylesheet" href="https://fonts.bunny.net/css?family=${f.url}&display=swap">` : '<!-- Systemschrift, keine externen Dateien -->'}
@@ -108,7 +109,7 @@ body{display:flex;align-items:stretch;padding:0;
   gap:.28em;text-align:center;padding:${pad}px;border-radius:${cfg.radius}px;background:${bg};border:${border};${shadow}
   overflow:hidden}
 .ttl{font-size:.8em;font-weight:600;letter-spacing:.07em;text-transform:uppercase;opacity:.6;margin:0;flex:0 0 auto;line-height:1.15}
-button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit;background-color:transparent}
 button{cursor:pointer}
 :focus-visible{outline:2px solid ${cfg.accent};outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
