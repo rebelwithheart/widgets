@@ -1117,6 +1117,203 @@ if(LIST){tx.addEventListener('keydown',function(e){if(e.key==='Enter'){e.prevent
   }
 },
 
+rechner:{
+  name:'Taschenrechner', icon:'🧮', folder:'rechner',
+  desc:'Rechnen mit großen Tasten, dazu ein Sparziel-Rechner fürs Taschengeld.',
+  variants:[
+    {k:'tasten', n:'Tastenfeld', d:'Klassischer Rechner mit Plus, Minus, Mal, Geteilt und Prozent.'},
+    {k:'euro', n:'Euro', d:'Gleiches Tastenfeld, Anzeige in Euro mit zwei Nachkommastellen.'},
+    {k:'gross', n:'Nur Plus und Minus', d:'Sehr große Tasten, nur Zusammenzählen und Abziehen.'},
+    {k:'sparziel', n:'Sparziel', d:'Wunsch, Erspartes und Taschengeld eintragen, rechnet Rest und Wochen aus.'},
+    {k:'teilen', n:'Gerecht teilen', d:'Betrag durch Anzahl Kinder teilen, zeigt den Rest in Cent.'}
+  ],
+  fields:[
+    {k:'top',t:'text',label:'Überschrift',def:'Mein Taschenrechner'},
+    {k:'wunschLbl',t:'text',label:'Beschriftung Wunsch (nur Sparziel)',def:'Das möchte ich'},
+    {k:'habeLbl',t:'text',label:'Beschriftung Erspartes (nur Sparziel)',def:'Schon gespart'},
+    {k:'wocheLbl',t:'text',label:'Beschriftung Taschengeld (nur Sparziel)',def:'Pro Woche'},
+    {k:'wunsch',t:'number',label:'Wunsch kostet (Euro)',def:25,min:0,max:100000},
+    {k:'habe',t:'number',label:'Schon gespart (Euro)',def:8,min:0,max:100000},
+    {k:'woche',t:'number',label:'Taschengeld pro Woche (Euro)',def:2,min:0,max:1000},
+    {k:'kinder',t:'number',label:'Anzahl zum Teilen',def:3,min:2,max:20}
+  ],
+  build(c){
+    const v = c.variant, oa = onAccent(c);
+    const euro = v === 'euro';
+
+    if(v === 'sparziel'){
+      const css = `.card{justify-content:space-evenly;align-items:stretch;text-align:left}
+.ttl{text-align:center}
+.zeile{display:flex;align-items:center;gap:.5em;font-size:.8em;font-weight:600}
+.zeile label{flex:1;min-width:0;opacity:.75}
+.zeile input{width:4.6em;flex:0 0 auto;text-align:right;font-weight:700;font-size:1.05em;
+ background:${hexa(c.accent,.12)};border:.1em solid ${hexa(c.accent,.32)};border-radius:.4em;padding:.25em .45em;outline:none}
+.bar{height:.6em;border-radius:999px;background:${hexa(c.text,.14)};overflow:hidden;flex:0 0 auto}
+.bar i{display:block;height:100%;width:0;background:${c.accent};border-radius:999px;transition:width .35s}
+.erg{display:flex;gap:.5em;align-items:stretch}
+.erg div{flex:1;background:${hexa(c.accent,.14)};border-radius:.5em;padding:.4em .5em;text-align:center;min-width:0}
+.erg b{display:block;font-size:1.5em;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.erg span{display:block;font-size:.58em;letter-spacing:.06em;text-transform:uppercase;opacity:.65;margin-top:.15em}
+.fertig{background:${c.accent}!important;color:${oa}}
+.fertig span{opacity:.85}`;
+      const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+<div class="zeile"><label for="a">${esc(c.wunschLbl)}</label><input id="a" type="number" min="0" step="0.5" inputmode="decimal"></div>
+<div class="zeile"><label for="b">${esc(c.habeLbl)}</label><input id="b" type="number" min="0" step="0.5" inputmode="decimal"></div>
+<div class="zeile"><label for="w">${esc(c.wocheLbl)}</label><input id="w" type="number" min="0" step="0.5" inputmode="decimal"></div>
+<div class="bar"><i id="bi"></i></div>
+<div class="erg">
+  <div id="k1"><b id="rest">–</b><span>Noch nötig</span></div>
+  <div id="k2"><b id="wochen">–</b><span>Wochen</span></div>
+</div>`;
+      const js = `${store}
+var KEY='spar_'+${jstr(c.top||'sparziel')};
+var a=document.getElementById('a'),b=document.getElementById('b'),w=document.getElementById('w');
+var st=ld(KEY,{a:${Number(c.wunsch)||0},b:${Number(c.habe)||0},w:${Number(c.woche)||0}});
+a.value=st.a; b.value=st.b; w.value=st.w;
+function eur(x){return x.toFixed(2).replace('.',',')+' €'}
+function rechne(){
+  var A=parseFloat(a.value)||0, B=parseFloat(b.value)||0, W=parseFloat(w.value)||0;
+  st={a:a.value,b:b.value,w:w.value}; sv(KEY,st);
+  var rest=Math.max(0,A-B);
+  var p=A>0?Math.min(100,B/A*100):0;
+  document.getElementById('bi').style.width=p+'%';
+  var r=document.getElementById('rest'), wo=document.getElementById('wochen');
+  var k1=document.getElementById('k1'), k2=document.getElementById('k2');
+  if(rest<=0 && A>0){
+    r.textContent='🎉'; wo.textContent='0';
+    k1.className='fertig'; k2.className='fertig';
+    k1.querySelector('span').textContent='Geschafft'; k2.querySelector('span').textContent='Wochen';
+  } else {
+    k1.className=''; k2.className='';
+    k1.querySelector('span').textContent='Noch nötig';
+    r.textContent=eur(rest);
+    wo.textContent = W>0 ? Math.ceil(rest/W) : '–';
+    k2.querySelector('span').textContent = (W>0 && Math.ceil(rest/W)===1) ? 'Woche' : 'Wochen';
+  }
+}
+[a,b,w].forEach(function(el){el.addEventListener('input',rechne)});
+rechne();`;
+      return shell(c, c.top||'Sparziel', html, css, js, 9, 13);
+    }
+
+    if(v === 'teilen'){
+      const css = `.card{justify-content:space-evenly}
+.zeile{display:flex;align-items:center;gap:.5em;width:100%;font-size:.82em;font-weight:600}
+.zeile label{flex:1;min-width:0;opacity:.75;text-align:left}
+.zeile input{width:4.6em;flex:0 0 auto;text-align:right;font-weight:700;font-size:1.05em;
+ background:${hexa(c.accent,.12)};border:.1em solid ${hexa(c.accent,.32)};border-radius:.4em;padding:.25em .45em;outline:none}
+.gross{font-size:2.6em;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.unter{font-size:.78em;opacity:.7}`;
+      const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+<div class="zeile"><label for="s">Betrag</label><input id="s" type="number" min="0" step="0.5" inputmode="decimal"></div>
+<div class="zeile"><label for="n">Geteilt durch</label><input id="n" type="number" min="2" step="1" inputmode="numeric"></div>
+<div class="gross" id="je">–</div>
+<div class="unter" id="rest"></div>`;
+      const js = `${store}
+var KEY='teil_v1';
+var s=document.getElementById('s'), n=document.getElementById('n');
+var st=ld(KEY,{s:10,n:${Number(c.kinder)||3}});
+s.value=st.s; n.value=st.n;
+function eur(x){return x.toFixed(2).replace('.',',')+' €'}
+function rechne(){
+  var S=Math.round((parseFloat(s.value)||0)*100), N=Math.max(1,parseInt(n.value,10)||1);
+  sv(KEY,{s:s.value,n:n.value});
+  var je=Math.floor(S/N), rest=S-je*N;
+  document.getElementById('je').textContent=eur(je/100);
+  document.getElementById('rest').textContent = rest>0
+    ? ('jede und jeder bekommt das, ' + rest + ' Cent bleiben übrig')
+    : 'geht genau auf';
+}
+[s,n].forEach(function(el){el.addEventListener('input',rechne)});
+rechne();`;
+      return shell(c, c.top||'Teilen', html, css, js, 9, 12);
+    }
+
+    /* Tastenfeld: tasten, euro, gross */
+    const klein = v === 'gross';
+    const tasten = klein
+      ? [['C','f'],['⌫','f'],['−','o'],['7','n'],['8','n'],['9','n'],['4','n'],['5','n'],['6','n'],
+         ['1','n'],['2','n'],['3','n'],['0','n'],[',','n'],['+','o'],['=','g']]
+      : [['C','f'],['⌫','f'],['%','f'],['÷','o'],
+         ['7','n'],['8','n'],['9','n'],['×','o'],
+         ['4','n'],['5','n'],['6','n'],['−','o'],
+         ['1','n'],['2','n'],['3','n'],['+','o'],
+         ['0','n w2'],[',','n'],['=','g']];
+    const spalten = klein ? 3 : 4;
+    const css = `.card{justify-content:stretch;gap:.3em}
+.disp{flex:0 0 auto;text-align:right;font-size:2.1em;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;
+ padding:0 .12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.merk{flex:0 0 auto;text-align:right;font-size:.62em;opacity:.5;min-height:1em;font-variant-numeric:tabular-nums;padding:0 .2em}
+.pad{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(${spalten},1fr);grid-auto-rows:1fr;gap:.22em}
+.pad button{border:none;border-radius:.42em;font-size:1.15em;font-weight:600;line-height:1;
+ background:${hexa(c.accent,.12)};display:grid;place-items:center;transition:background .1s}
+.pad button:active{background:${hexa(c.accent,.3)}}
+.pad button.o{background:${hexa(c.accent,.26)};font-weight:700}
+.pad button.f{background:${hexa(c.text,.12)};font-size:1em}
+.pad button.g{background:${c.accent};color:${oa};font-weight:700}
+.pad button.w2{grid-column:span 2}`;
+    const html = `${c.top?`<p class="ttl">${esc(c.top)}</p>`:''}
+<div class="merk" id="merk"></div>
+<div class="disp" id="disp">0</div>
+<div class="pad" id="pad"></div>`;
+    const js = `var EURO=${euro?'true':'false'};
+var T=${JSON.stringify(tasten)};
+var disp=document.getElementById('disp'), merk=document.getElementById('merk'), pad=document.getElementById('pad');
+var cur='0', acc=null, op=null, neu=true;
+function zeig(x){
+  var s=String(x);
+  if(EURO && s!=='' && !isNaN(parseFloat(s))) s=parseFloat(s).toFixed(2);
+  s=s.replace('.',',');
+  disp.textContent = EURO ? s+' €' : s;
+}
+function rechne(a,o,b){
+  if(o==='+') return a+b;
+  if(o==='−') return a-b;
+  if(o==='×') return a*b;
+  if(o==='÷') return b===0 ? NaN : a/b;
+  return b;
+}
+function rund(x){ return Math.round(x*1e8)/1e8 }
+function taste(t){
+  if(t>='0' && t<='9'){ cur = (neu||cur==='0') ? t : cur+t; neu=false; }
+  else if(t===','){ if(neu){cur='0.';neu=false} else if(cur.indexOf('.')<0) cur+='.'; }
+  else if(t==='C'){ cur='0'; acc=null; op=null; neu=true; merk.textContent=''; }
+  else if(t==='⌫'){ cur = cur.length>1 ? cur.slice(0,-1) : '0'; if(cur==='0')neu=true; }
+  else if(t==='%'){ cur = String(rund(parseFloat(cur)/100)); neu=true; }
+  else if(t==='='){
+    if(op!==null){ cur=String(rund(rechne(acc,op,parseFloat(cur)||0))); acc=null; op=null; merk.textContent=''; neu=true; }
+  } else {
+    var z=parseFloat(cur)||0;
+    if(op!==null && !neu){ z=rund(rechne(acc,op,z)); cur=String(z); }
+    acc=z; op=t; neu=true;
+    merk.textContent=String(acc).replace('.',',')+' '+t;
+  }
+  if(isNaN(parseFloat(cur))){ disp.textContent='Hoppla'; cur='0'; neu=true; return }
+  zeig(cur);
+}
+T.forEach(function(p){
+  var b=document.createElement('button');
+  b.type='button'; b.textContent=p[0]; b.className=p[1];
+  b.setAttribute('aria-label', p[0]==='⌫' ? 'Löschen' : p[0]);
+  b.onclick=function(){taste(p[0])};
+  pad.appendChild(b);
+});
+document.addEventListener('keydown',function(e){
+  var k=e.key;
+  if(k>='0'&&k<='9') taste(k);
+  else if(k===','||k==='.') taste(',');
+  else if(k==='+') taste('+');
+  else if(k==='-') taste('−');
+  else if(k==='*') taste('×');
+  else if(k==='/'){ e.preventDefault(); taste('÷') }
+  else if(k==='Enter'||k==='='){ e.preventDefault(); taste('=') }
+  else if(k==='Backspace'){ e.preventDefault(); taste('⌫') }
+  else if(k==='Escape') taste('C');
+});
+zeig(cur);`;
+    return shell(c, c.top||'Taschenrechner', html, css, js, klein ? 11 : 13, klein ? 9 : 11);
+  }
+},
 gruss:{
   name:'Begrüßung', icon:'👋', folder:'gruss',
   desc:'Begrüßt mit Namen, der Text wechselt nach Tageszeit.',
