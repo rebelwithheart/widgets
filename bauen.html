@@ -26,13 +26,13 @@ h1{font-family:var(--f-d);font-weight:700;font-size:clamp(25px,5vw,34px);margin:
 .grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px;align-items:start}
 /* Vorschau laeuft beim Scrollen mit, damit Aenderungen sofort sichtbar sind */
 @media (min-width:901px){
-  .grid>div:last-child{align-self:stretch}
-  .grid>div:last-child>.panel:first-child{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;
+  .col-r{align-self:stretch}
+  .col-r>.panel:first-child{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;
     scrollbar-width:thin;overscroll-behavior:contain}
 }
 @media (max-width:900px){
   .grid{grid-template-columns:minmax(0,1fr)}
-  .grid>div:last-child{order:-1}
+  .col-r{order:-1}
 }
 .panel{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:15px}
 .panel+.panel{margin-top:13px}
@@ -71,7 +71,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;
   border:1.5px dashed var(--line);border-radius:12px;padding:13px;display:flex;justify-content:center;overflow-x:auto}
 iframe.pv{border:0;background:transparent;border-radius:8px;max-width:100%;box-shadow:0 2px 14px rgba(0,0,0,.08)}
-.anleitung{margin-top:18px;max-width:78ch}
+.anleitung{grid-column:1/-1;margin-top:18px;max-width:78ch}
 .urlrow{margin-top:13px}
 .urlrow input{width:100%;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;border-color:var(--accent)}
 .btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
@@ -101,14 +101,14 @@ footer a{color:var(--accent);margin-right:14px}
 </header>
 
 <div class="grid">
-  <div>
+  <div class="col-l">
     <div class="panel"><h2>1. Widget</h2><div class="picker" id="picker"></div><p class="hint" id="wdesc"></p></div>
     <div class="panel"><h2>2. Stil</h2><div class="chips" id="vars"></div><p class="hint" id="vdesc"></p></div>
     <div class="panel"><h2>3. Inhalt</h2><div id="fields"></div></div>
     <div class="panel"><h2>4. Aussehen</h2><div id="style"></div></div>
   </div>
 
-  <div>
+  <div class="col-r">
     <div class="panel">
       <div class="bar">
         <button class="sz" data-size="300x230">Klein</button>
